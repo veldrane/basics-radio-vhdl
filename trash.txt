@@ -1,0 +1,17 @@
+parameter [6:0]NUM_0=7'b0111111;
+parameter [6:0]NUM_1=7'b0000110;
+parameter [6:0]NUM_2=7'b1011011;
+parameter [6:0]NUM_3=7'b1001111;
+parameter [6:0]NUM_4=7'b1100110;
+parameter [6:0]NUM_5=7'b1101101;
+parameter [6:0]NUM_6=7'b1111101;
+parameter [6:0]NUM_7=7'b0000111;
+parameter [6:0]NUM_8=7'b1111111;
+parameter [6:0]NUM_9=7'b1101111;
+parameter [6:0]NUM_A=7'b1110111;
+parameter [6:0]NUM_B=7'b1111100;
+parameter [6:0]NUM_C=7'b1011000;
+parameter [6:0]NUM_D=7'b1011110;
+parameter [6:0]NUM_E=7'b1111001;
+parameter [6:0]NUM_F=7'b1110001;
+parameter [6:0]NUM_BLK=7'b0000000;

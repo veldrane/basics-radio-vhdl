@@ -1,0 +1,81 @@
+Function code - but not with request fcionality
+----- 15.11.2017
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+
+-- parameter [7:0]EN_1=4'b1110;
+-- parameter [7:0]EN_2=4'b1101;
+-- parameter [7:0]EN_3=4'b1011;
+-- parameter [7:0]EN_4=4'b0111;
+-- parameter [3:0]EN_A=4'b0000;
+	
+-- assign {DS_G,DS_F,DS_E,DS_D,DS_C,DS_B,DS_A} = NUM_6 ;
+-- assign {DS_EN1,DS_EN2,DS_EN3,DS_EN4} = EN_1;
+
+
+entity SevenSegments is
+        port (
+               clk			:	in std_logic;
+                hex				:	out std_logic_vector(7 downto 0);
+					 hex_s			:	out std_logic_vector(3 downto 0)
+					--		 key				:	in std_logic_vector(3 downto 0)
+        );
+end entity;
+
+architecture main of SevenSegments is
+
+	constant clk_freq :	integer := 48000000;
+	constant clk_max	:	integer := clk_freq/2;
+	constant secs_tr	:	integer := 31;
+
+	signal counter		:	integer	:= 0;
+	signal counter_HZ	:	integer 	:= 0;
+	signal secs			: 	std_logic := '0';
+
+	
+
+	begin
+	
+	process (clk) is
+		begin
+
+		if rising_edge(clk) then	
+			counter <= counter + 1;
+			
+			if counter=clk_max then
+				counter <= 0;
+				secs <= not secs;
+			end if;
+		end if;	
+	end process;
+	
+	
+	process (secs) is
+		begin
+		if rising_edge(secs) then
+			counter_HZ <= counter_HZ + 1;
+			
+			if counter_HZ=secs_tr then
+				counter_HZ <= 0;
+			end if;
+		end if;		
+	end process;
+		
+
+	
+--		hex(7 downto 0) <= "00000110";
+		hex(7 downto 0) <= "00000110";
+--		hex_s(3 downto 0) <= "0111";
+		hex_s <= std_logic_vector(to_unsigned(counter_HZ,4));
+
+end architecture;
+----------------------------------------
+
+
+16.11.2017 - continue with display multiple segments 
+26.11.2017 - project has been renamed to radioclock and moved to different directory
+
+

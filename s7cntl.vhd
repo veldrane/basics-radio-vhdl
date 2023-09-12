@@ -1,0 +1,60 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+package s7cntl is
+	function int_to7seg (i_number:integer) return std_logic_vector;
+	function	int_toctl7seg (c_number:integer) return std_logic_vector;
+end s7cntl;
+
+package body s7cntl is
+
+	function int_to7seg (i_number:integer) return std_logic_vector is
+	
+	variable result: std_logic_vector(6 downto 0);
+	
+	begin
+	
+		case i_number is
+		
+			when 0 => result:="0111111";
+			when 1 => result:="0000110";
+			when 2 => result:="1011011";
+			when 3 => result:="1001111";
+			when 4 => result:="1100110";
+			when 5 => result:="1101101";
+			when 6 => result:="1111101";
+			when 7 => result:="0000111";
+			when 8 => result:="1111111";
+			when 9 => result:="1101111";
+			when 10 => result:="1110111";
+			when 11 => result:="1111100";
+			when 12 => result:="1011000";
+			when 13 => result:="1011110";
+			when 14 => result:="1111001";
+			when 15 => result:="1110001";
+			when others => result:=(others=>'0');
+		end case;
+		
+		return result;
+			
+	end int_to7seg;
+	
+	function	int_toctl7seg (c_number:integer) return std_logic_vector is
+	
+	variable ctl7result: std_logic_vector(3 downto 0);
+	
+		begin
+		
+			case c_number is
+				when 1 => ctl7result:="1110";
+				when 2 => ctl7result:="1101";
+				when 3 => ctl7result:="1011";
+				when 4 => ctl7result:="0111";
+				when others => ctl7result:= "1111";
+			end case;
+			return ctl7result;
+	
+	end int_toctl7seg;
+	
+end s7cntl;

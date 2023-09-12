@@ -1,0 +1,199 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use work.S_Controler.all;
+
+
+-- parameter [7:0]EN_1=4'b1110;
+-- parameter [7:0]EN_2=4'b1101;
+-- parameter [7:0]EN_3=4'b1011;
+-- parameter [7:0]EN_4=4'b0111;
+-- parameter [3:0]EN_A=4'b0000;
+	
+-- assign {DS_G,DS_F,DS_E,DS_D,DS_C,DS_B,DS_A} = NUM_6 ;
+-- assign {DS_EN1,DS_EN2,DS_EN3,DS_EN4} = EN_1;
+
+
+entity SevenSegments is
+        port (
+					 clk				:	in std_logic;										-- internal crystal
+                hex				:	out std_logic_vector(6 downto 0);			-- signals in arra for 7seg diaplay
+					 hex_s			:	out std_logic_vector(3 downto 0)				-- selector for 7seg display
+					--		 key				:	in std_logic_vector(3 downto 0)
+        );
+end entity;
+
+architecture main of SevenSegments is
+
+	constant clk_freq 	:	integer := 48000000;				-- internal clock frequency
+	constant clk_max		:	integer := clk_freq/2;			-- max internal freq - used for 1HZ computing
+
+	-- time trails
+	
+	constant secs_tr		:	integer := 4;
+	constant mins_tr		:	integer := 4;						-- max numver in min unit count
+	constant mins10_tr	:	integer := 4;						-- max numver in min unit count	
+	constant hours_tr		:	integer := 4;						-- max number of hour unit
+	
+	--
+	
+	constant seg7_tr		:	integer := 100000;				-- 7seg frequency 400000 = 30HZ; 100000 = 120HZ
+	
+	
+	constant max_7units	:	integer := 4;						-- max 7segs units (on my boards four units)
+
+	--- counters for time
+
+	signal counter_SEC	:	integer 	:= 0;						-- sec counter
+	signal counter_MIN	:	integer	:=	0;						-- minute counter
+	signal counter_10MIN	:	integer	:=	0;						-- ten minute counter
+	signal counter_HOUR	:	integer	:= 2;						-- hour counter
+	signal counter_10HOUR:	integer	:= 1;						-- ten hours counter	
+	
+	
+	--- flip flops
+	
+	signal secs				: 	std_logic := '1';					-- flip flop for every second
+	signal mins				: 	std_logic := '1';					-- flip flop for every minute
+	signal mins10			: 	std_logic := '1';					-- flip flop for every 10 minute
+	signal hours			: 	std_logic := '1';					-- flip flop for every hour
+	signal hours10			: 	std_logic := '1';					-- flip flop for every hour
+	signal segs7			:	std_logic := '1';					-- flip flop for seven segment diplay frequency
+	
+	
+	signal counter_7adj	:	integer	:=	0;
+	
+	signal hexval		:	integer;
+	signal hexsel		: 	std_logic_vector(1 downto 0);
+	
+	
+	-- variable in local processes - usually converted from signals
+	--	counter: internal clock counter (process clk)
+	-- counter_7seg: 7seg delay (proccess clk)
+	-- counter_HZ: counter of seconds
+	
+	
+
+	begin
+	
+	process (clk) is
+	
+		variable	counter			:	integer	:=	0;						-- internal clock counter
+		variable counter_7seg	:	integer	:=	0;						-- 7seg delay - computing refresh rate
+		
+		-- start
+		
+		begin
+		
+		if rising_edge(clk) then	
+			
+			counter := counter + 1;
+			counter_7seg := counter_7seg + 1;
+			
+			if counter=clk_max then
+				counter := 0;
+				secs <= not secs;
+			end if;
+			
+			if counter_7seg = seg7_tr then
+				counter_7seg := 0;
+				segs7 <= not segs7;
+			end if;	
+			
+		end if;	
+	end process;
+	
+	
+	process (secs) is
+		
+--		variable SEC_MAX	:	integer	:=	secs_tr/2;
+		
+		begin
+		if rising_edge(secs) then
+			counter_SEC <= counter_SEC + 1;
+			
+			if counter_SEC=secs_tr - 1 then
+				mins<=not mins;
+				counter_SEC <= 0;
+			else 
+				mins <= '0';
+			end if;
+			
+		end if;		
+	end process;
+	
+	process (mins) is
+		begin
+		if rising_edge(mins) then
+			counter_MIN <= counter_MIN + 1;
+			
+			if counter_MIN=mins_tr - 1 then
+				mins10<=not mins10;
+				counter_MIN <= 0;
+			else
+				mins10 <= '0';
+			end if;	
+		end if;		
+	end process;
+	
+	process(mins10) is
+		begin
+		if rising_edge(mins10) then
+			counter_10MIN <= counter_10MIN + 1;
+			
+			if counter_10MIN=mins10_tr - 1 then
+				hours<=not hours;
+				counter_10MIN <= 0;
+			else
+				hours <= '0';
+			end if;	
+		end if;		
+	end process;
+	
+	process(hours) is
+		begin
+		if rising_edge(hours) then
+			counter_HOUR <= counter_HOUR + 1;
+			
+			if counter_HOUR=hours_tr - 1 then
+				hours10<=not hours10;
+				counter_HOUR <= 0;
+			else
+				hours10 <= '0';
+			end if;	
+		end if;		
+	end process;
+		
+	
+	process (segs7) is
+		begin
+		if rising_edge(segs7) then
+			counter_7adj <= counter_7adj + 1;		
+			if counter_7adj = max_7units then
+				counter_7adj <= 0;
+			end if;
+		end if;
+		hexsel <= std_logic_vector(to_unsigned((counter_7adj),2));
+	end process;
+	
+		process (segs7) is
+		begin
+		if rising_edge(segs7) then
+			case hexsel is
+				when "00" => hexval <= counter_HOUR;
+				when "01" => hexval <= counter_10MIN;
+				when "10" => hexval <= counter_MIN;
+				when "11" => hexval <= counter_SEC;
+			end case;
+		end if;
+	end process;
+
+
+	
+--		hex(7 downto 0) <= "00000110";
+		hex_s	<= int_toctl7seg(counter_7adj);
+		hex <= int_to7seg(hexval);
+---	hex_s	<= int_toctl7seg(counter_7seg);
+---	hex_s <= std_logic_vector(to_unsigned(counter_HZ,4));
+
+end architecture;
